@@ -4,3 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bedrockrs_level = { git = "https://github.com/bedrock-crustaceans/bedrock-rs.git", version = "0.1.0" }
