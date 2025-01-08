@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bedrockrs = { git = "https://github.com/akashic-records-of-the-abyss/bedrockrs.git", branch = "level_crate_rework", version = "0.1.0" }
+rusty-leveldb = "3.0.2"
