@@ -3,6 +3,33 @@ use rusty_leveldb::{
 };
 use std::io::Result;
 
+pub enum ChunkKey {
+    Data3D = 43,
+    Version,
+    Data2D,
+    Data2DLegacy,
+    SubChunkPrefix,
+    LegacyTerrain,
+    BlockEntity,
+    Entity,
+    PendingTicks,
+    LegacyBlockExtraData,
+    BiomeState,
+    FinalizedState,
+    ConversionData,
+    BorderBlocks,
+    HardcodedSpawners,
+    RandomTicks,
+    CheckSums,
+    GenerationSeed,
+    GeneratedPreCavesAndCliffsBlending,
+    BlendingBiomeHeight,
+    MetaDataHash,
+    BlendingData,
+    ActorDigestVersion,
+    LegacyVersion = 118,
+}
+
 fn main() -> Result<()> {
     println!("Hello, world!");
 
