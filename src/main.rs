@@ -16,11 +16,12 @@ fn main() -> Result<()> {
     iter.seek_to_first();
 
     while iter.valid() {
-        let (key, value) = match iter.next() {
+        let (key, value): (Vec<u8>, Vec<u8>) = match iter.next() {
             None => break,
             Some(entry) => entry,
         };
-        println!("Key: {:?}, Value, {:?}", key, value);
+        let key_string: String = String::from_utf8(key).expect("Couldn't parse as string");
+        println!("Key: {:?}", key_string);
     }
 
     Ok(())
