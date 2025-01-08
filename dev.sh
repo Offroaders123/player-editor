@@ -1,1 +1,1 @@
-cargo watch -c -q -x "run -q"
+cargo watch --clear --quiet --exec "run --quiet" --ignore "*/db/**/*"
