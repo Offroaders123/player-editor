@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bedrockrs_level = { git = "https://github.com/akashic-records-of-the-abyss/bedrockrs.git", branch = "level_crate_rework", version = "0.1.0" }
+bedrockrs = { git = "https://github.com/akashic-records-of-the-abyss/bedrockrs.git", branch = "level_crate_rework", version = "0.1.0" }
