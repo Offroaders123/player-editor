@@ -20,8 +20,7 @@ fn main() -> Result<()> {
             None => break,
             Some(entry) => entry,
         };
-        let key_string: String = String::from_utf8(key).expect("Couldn't parse as string");
-        println!("Key: {:?}", key_string);
+        println!("Key: {:02x?}", key);
     }
 
     Ok(())
