@@ -1,5 +1,7 @@
-use rusty_leveldb::{compressor::SnappyCompressor, CompressorId, DBIterator, Options, DB};
-use std::io::Result;
+use rusty_leveldb::{
+    compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
+};
+use std::io::{Error, ErrorKind, Result};
 
 fn main() -> Result<()> {
     println!("Hello, world!");
@@ -10,10 +12,14 @@ fn main() -> Result<()> {
     let mut db: DB = DB::open("./test/world/Chromebook Survival/db", options)
         .expect("Failed to open the database");
 
-    let iter: DBIterator = db.new_iter().expect("Failed to create iterator");
+    let mut iter: DBIterator = db.new_iter().expect("Failed to create iterator");
 
-    for (key, value) in iter {
-        println!("Key: {}, Value, {}", key, value);
+    while iter.valid() {
+        let (key, value) = match iter.next() {
+            None => Err(Error::new(ErrorKind::NotFound, "Empty iteration")),
+            Some(entry) => Ok(entry),
+        }?;
+        println!("Key: {:?}, Value, {:?}", key, value);
     }
 
     Ok(())
