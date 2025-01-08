@@ -20,7 +20,7 @@ fn main() -> Result<()> {
             None => break,
             Some(entry) => entry,
         };
-        println!("Key: {:02x?}", key);
+        println!("Key: {:?}", String::from_utf8_lossy(&key));
     }
 
     Ok(())
