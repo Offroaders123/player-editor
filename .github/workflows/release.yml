@@ -1,0 +1,53 @@
+name: Release Rust CLI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Trigger the workflow on tags matching the pattern (e.g., v1.0.0)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable # Use the stable Rust toolchain
+          override: true
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build the Rust project
+        run: cargo build --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: player-editor
+          path: target/release/player-editor # Replace with your binary name
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download built artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: player-editor
+          path: ./artifact
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifact/player-editor # Replace with your binary name
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
