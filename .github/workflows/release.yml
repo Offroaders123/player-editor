@@ -8,6 +8,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-gnu
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -18,36 +25,42 @@ jobs:
           toolchain: stable # Use the stable Rust toolchain
           override: true
 
-      - name: Cache cargo dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      - name: Install additional target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install dependencies for Windows (if needed)
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64
+
+      - name: Install dependencies for macOS ARM cross-compilation
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Build the Rust project
-        run: cargo build --release
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: player-editor
-          path: target/release/player-editor # Replace with your binary name
+          name: ${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/player-editor # Replace with your binary name
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download built artifact
+      - name: Download built artifacts
         uses: actions/download-artifact@v3
         with:
-          name: player-editor
-          path: ./artifact
+          path: ./artifacts
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v1
         with:
-          files: ./artifact/player-editor # Replace with your binary name
+          files: |
+            ./artifacts/x86_64-unknown-linux-gnu/player-editor
+            ./artifacts/x86_64-pc-windows-gnu/player-editor.exe
+            ./artifacts/x86_64-apple-darwin/player-editor
+            ./artifacts/aarch64-apple-darwin/player-editor
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
