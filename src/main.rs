@@ -4,19 +4,43 @@ use rusty_leveldb::{
 use std::env::args;
 use std::fs::{create_dir_all, write};
 use std::io::Result;
-use std::process::exit;
+
+trait ExpectExit<T> {
+    fn expect_exit(self, msg: &str) -> T;
+}
+
+impl<T> ExpectExit<T> for core::option::Option<T> {
+    fn expect_exit(self, msg: &str) -> T {
+        match self {
+            None => {
+                eprintln!("Error: {}", msg);
+                std::process::exit(1);
+            }
+            Some(value) => value,
+        }
+    }
+}
+
+impl<T, E: std::fmt::Display> ExpectExit<T> for core::result::Result<T, E> {
+    fn expect_exit(self, msg: &str) -> T {
+        match self {
+            Ok(value) => value,
+            Err(err) => {
+                eprintln!("Error: {} - {}", msg, err);
+                std::process::exit(1);
+            }
+        }
+    }
+}
 
 fn main() -> Result<()> {
     println!("player-editor");
 
     let args: Vec<String> = args().collect();
 
-    if args.len() < 2 {
-        eprintln!("Please pass the world folder you'd like to extract from");
-        exit(1);
-    }
-
-    let world_dir: &String = &args[1];
+    let world_dir: &String = &args
+        .get(1)
+        .expect_exit("Please pass the world folder you'd like to extract from");
     let player_dir: String = format!("{world_dir}/_player");
     let db_dir: String = format!("{world_dir}/db");
 
@@ -26,9 +50,11 @@ fn main() -> Result<()> {
 
     println!("Opening world {world_dir}\n");
 
-    let mut db: DB = DB::open(db_dir, options).expect("Failed to open database");
+    let mut db: DB = DB::open(db_dir, options).expect_exit("Failed to open database");
 
-    let mut iter: DBIterator = db.new_iter().expect("Failed to create database iterator");
+    let mut iter: DBIterator = db
+        .new_iter()
+        .expect_exit("Failed to create database iterator");
     iter.seek_to_first();
 
     println!("Searching for player entries...");
