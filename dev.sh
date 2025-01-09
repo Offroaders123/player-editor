@@ -1,1 +1,1 @@
-cargo watch --clear --quiet --exec "run --quiet" --ignore "*/world/**/*"
+cargo watch --clear --quiet --exec "run --quiet -- './test/world/Chromebook Survival'" --ignore "*/world/**/*"
