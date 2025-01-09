@@ -3,7 +3,7 @@ name: Release Rust CLI
 on:
   push:
     tags:
-      - 'v*.*.*' # Trigger the workflow on tags matching the pattern (e.g., v1.0.0)
+      - '*' # Push events to every tag not containing /
 
 jobs:
   build:
