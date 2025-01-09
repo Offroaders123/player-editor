@@ -1,1 +1,1 @@
-cargo watch --clear --quiet --exec "run --quiet" --ignore "*/db/**/*"
+cargo watch --clear --quiet --exec "run --quiet" --ignore "*/world/**/*"

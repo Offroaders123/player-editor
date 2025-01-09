@@ -1,10 +1,13 @@
 use rusty_leveldb::{
     compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
 };
+use std::fs::{create_dir_all, write};
 use std::io::Result;
 
 fn main() -> Result<()> {
     println!("Hello, world!");
+
+    create_dir_all("./test/world/Chromebook Survival/_player")?;
 
     let mut options: Options = Options::default();
     options.create_if_missing = false;
@@ -16,15 +19,18 @@ fn main() -> Result<()> {
     iter.seek_to_first();
 
     while iter.valid() {
-        let (key, mut value): (String, Vec<u8>) = match iter.next() {
+        let (key, value): (String, Vec<u8>) = match iter.next() {
             None => break,
             Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
         };
         if !key.to_lowercase().contains("player") {
             continue;
         }
-        value.truncate(12);
         println!("Key: {:?}\nValue: {:?}\n", key, value);
+        write(
+            format!("./test/world/Chromebook Survival/_player/{key}.nbt"),
+            value,
+        )?;
     }
 
     Ok(())
