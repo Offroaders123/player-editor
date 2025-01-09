@@ -4,32 +4,36 @@ use rusty_leveldb::{
 use std::env::args;
 use std::fs::{create_dir_all, write};
 use std::io::Result;
+use std::process::exit;
 
 fn main() -> Result<()> {
     println!("player-editor");
 
     let args: Vec<String> = args().collect();
-    println!("{:?}", args);
 
-    let world_dir: &String = &args
-        .get(1)
-        .expect("Please pass the world folder you'd like to extract from");
+    if args.len() < 2 {
+        eprintln!("Please pass the world folder you'd like to extract from");
+        exit(1);
+    }
+
+    let world_dir: &String = &args[1];
     let player_dir: String = format!("{world_dir}/_player");
-    println!("{player_dir}");
     let db_dir: String = format!("{world_dir}/db");
-
-    create_dir_all(&player_dir)?;
 
     let mut options: Options = Options::default();
     options.create_if_missing = false;
     options.compressor = SnappyCompressor::ID;
 
-    let mut db: DB = DB::open(db_dir, options).expect("Failed to open the database");
+    println!("Opening world {world_dir}\n");
 
-    let mut iter: DBIterator = db.new_iter().expect("Failed to create iterator");
+    let mut db: DB = DB::open(db_dir, options).expect("Failed to open database");
+
+    let mut iter: DBIterator = db.new_iter().expect("Failed to create database iterator");
     iter.seek_to_first();
 
-    println!("Finding player entries...");
+    println!("Searching for player entries...");
+
+    create_dir_all(&player_dir)?;
 
     while iter.valid() {
         let (key, value): (String, Vec<u8>) = match iter.next() {
