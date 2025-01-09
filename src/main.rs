@@ -11,7 +11,9 @@ fn main() -> Result<()> {
     let args: Vec<String> = args().collect();
     println!("{:?}", args);
 
-    let world_dir: &String = &args[1];
+    let world_dir: &String = &args
+        .get(1)
+        .expect("Please pass the world folder you'd like to extract from");
     let player_dir: String = format!("{world_dir}/_player");
     println!("{player_dir}");
     let db_dir: String = format!("{world_dir}/db");
@@ -35,6 +37,7 @@ fn main() -> Result<()> {
             None => break,
         };
 
+        // This needs to be case-sensitive actually!
         if !key.to_lowercase().contains("player") {
             continue;
         }
