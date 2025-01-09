@@ -43,11 +43,16 @@ fn main() -> Result<()> {
     iter.seek_to_first();
 
     while iter.valid() {
-        let (key, value): (Vec<u8>, Vec<u8>) = match iter.next() {
+        let (key, mut value): (Vec<u8>, Vec<u8>) = match iter.next() {
             None => break,
             Some(entry) => entry,
         };
-        println!("Key: {:?}", String::from_utf8_lossy(&key));
+        value.truncate(12);
+        println!(
+            "Key: {:?}\nValue: {:?}\n",
+            String::from_utf8_lossy(&key),
+            value
+        );
     }
 
     Ok(())
