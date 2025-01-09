@@ -67,8 +67,7 @@ fn main() -> Result<()> {
             None => break,
         };
 
-        // This needs to be case-sensitive actually!
-        if !key.to_lowercase().contains("player") {
+        if !key.contains("player") {
             continue;
         }
 
