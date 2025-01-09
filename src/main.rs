@@ -16,16 +16,15 @@ fn main() -> Result<()> {
     iter.seek_to_first();
 
     while iter.valid() {
-        let (key, mut value): (Vec<u8>, Vec<u8>) = match iter.next() {
+        let (key, mut value): (String, Vec<u8>) = match iter.next() {
             None => break,
-            Some(entry) => entry,
+            Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
         };
+        if !key.to_lowercase().contains("player") {
+            continue;
+        }
         value.truncate(12);
-        println!(
-            "Key: {:?}\nValue: {:?}\n",
-            String::from_utf8_lossy(&key),
-            value
-        );
+        println!("Key: {:?}\nValue: {:?}\n", key, value);
     }
 
     Ok(())
