@@ -54,5 +54,7 @@ fn main() -> Result<()> {
         write(player_path, value)?;
     }
 
+    db.close().expect_exit("Failed to close database");
+
     Ok(())
 }
