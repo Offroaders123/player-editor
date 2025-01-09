@@ -1,37 +1,12 @@
+mod expect_exit;
+
+use crate::expect_exit::ExpectExit;
 use rusty_leveldb::{
     compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
 };
 use std::env::args;
 use std::fs::{create_dir_all, write};
 use std::io::Result;
-
-trait ExpectExit<T> {
-    fn expect_exit(self, msg: &str) -> T;
-}
-
-impl<T> ExpectExit<T> for core::option::Option<T> {
-    fn expect_exit(self, msg: &str) -> T {
-        match self {
-            None => {
-                eprintln!("Error: {}", msg);
-                std::process::exit(1);
-            }
-            Some(value) => value,
-        }
-    }
-}
-
-impl<T, E: std::fmt::Display> ExpectExit<T> for core::result::Result<T, E> {
-    fn expect_exit(self, msg: &str) -> T {
-        match self {
-            Ok(value) => value,
-            Err(err) => {
-                eprintln!("Error: {} - {}", msg, err);
-                std::process::exit(1);
-            }
-        }
-    }
-}
 
 fn main() -> Result<()> {
     println!("player-editor");
