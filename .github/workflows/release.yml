@@ -36,6 +36,7 @@ jobs:
           - build: windows-x86_64
             os: ubuntu-latest
             target: x86_64-pc-windows-gnu
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -52,7 +53,6 @@ jobs:
           # Make Rust compile to our target (defined in the matrix)
           toolchain: stable
           targets: ${{ matrix.target }}
-          override: true
 
       - name: Add target
         run: rustup target add ${{ matrix.target }}
@@ -60,6 +60,10 @@ jobs:
       - name: Install Dependencies for Windows (if needed)
         if: ${{ matrix.target == 'x86_64-pc-windows-gnu' }}
         run: sudo apt-get update && sudo apt-get install -y mingw-w64
+
+      - name: Install Dependencies for ARM64
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Build
         run: cargo build --release --verbose --target ${{ matrix.target }}
@@ -72,6 +76,7 @@ jobs:
 
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           mkdir "$dirname"
+
           # Handle Windows binary packaging
           if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
             mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
