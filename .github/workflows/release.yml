@@ -1,66 +1,77 @@
-name: Release Rust CLI
+name: Deploy
 
 on:
   push:
     tags:
-      - '*' # Push events to every tag not containing /
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-upload:
+    name: Build and upload
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-pc-windows-gnu
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
+        # You can add more, for any target you'd like!
+        include:
+          - build: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+
+          - build: macos
+            os: macos-latest
+            target: x86_64-apple-darwin
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - name: Get the release version from the tag
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Install Rust
+        # Or @nightly if you want
+        uses: dtolnay/rust-toolchain@stable
+        # Arguments to pass in
         with:
-          toolchain: stable # Use the stable Rust toolchain
-          override: true
+          # Make Rust compile to our target (defined in the matrix)
+          targets: ${{ matrix.target }}
 
-      - name: Install additional target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Install dependencies for Windows (if needed)
-        if: matrix.target == 'x86_64-pc-windows-gnu'
-        run: sudo apt-get update && sudo apt-get install -y mingw-w64
-
-      - name: Install dependencies for macOS ARM cross-compilation
-        if: matrix.target == 'aarch64-apple-darwin'
-        run: sudo apt-get install -y gcc-aarch64-linux-gnu
-
-      - name: Build the Rust project
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - name: Build
+        uses: actions-rs/cargo@v1
         with:
-          name: ${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/player-editor # Replace with your binary name
+          use-cross: true
+          command: build
+          args: --verbose --release --target ${{ matrix.target }}
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download built artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: ./artifacts
+      - name: Build archive
+        shell: bash
+        run: |
+          # Replace with the name of your binary
+          binary_name="player-editor"
 
-      - name: Create GitHub release
+          dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
+          mkdir "$dirname"
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
+          else
+            mv "target/${{ matrix.target }}/release/$binary_name" "$dirname"
+          fi
+
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a "$dirname.zip" "$dirname"
+            echo "ASSET=$dirname.zip" >> $GITHUB_ENV
+          else
+            tar -czf "$dirname.tar.gz" "$dirname"
+            echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
+          fi
+
+      - name: Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./artifacts/x86_64-unknown-linux-gnu/player-editor
-            ./artifacts/x86_64-pc-windows-gnu/player-editor.exe
-            ./artifacts/x86_64-apple-darwin/player-editor
-            ./artifacts/aarch64-apple-darwin/player-editor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ${{ env.ASSET }}
