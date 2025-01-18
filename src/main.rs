@@ -6,8 +6,13 @@ use rusty_leveldb::{
 };
 use std::env::args;
 use std::fs::{create_dir_all, write};
-use std::io::Result;
+use std::io::{ErrorKind, Result};
 use std::path::{Path, PathBuf};
+
+enum EditMode {
+    Read,
+    Write,
+}
 
 fn main() -> Result<()> {
     println!("player-editor");
@@ -18,6 +23,18 @@ fn main() -> Result<()> {
         args.get(1)
             .expect_exit("Please pass the world folder you'd like to extract from"),
     );
+
+    let mode: EditMode = match args
+        .get(2)
+        .expect_exit("Please specify the action you'd like to make; '--read' or '--write'")
+        .as_str()
+    {
+        "--read" => Ok(EditMode::Read),
+        "--write" => Ok(EditMode::Write),
+        _ => Err(ErrorKind::InvalidInput),
+    }
+    .expect_exit("Invalid action; '--read' or '--write'");
+
     let player_dir: PathBuf = world_dir.join("_player");
     let db_dir: PathBuf = world_dir.join("db");
 
