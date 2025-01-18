@@ -51,24 +51,29 @@ fn main() -> Result<()> {
         .expect_exit("Failed to create database iterator");
     iter.seek_to_first();
 
-    println!("Searching for player entries...");
+    match mode {
+        EditMode::Read => {
+            println!("Searching for player entries...");
 
-    create_dir_all(&player_dir)?;
+            create_dir_all(&player_dir)?;
 
-    while iter.valid() {
-        let (key, value): (String, Vec<u8>) = match iter.next() {
-            Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
-            None => break,
-        };
+            while iter.valid() {
+                let (key, value): (String, Vec<u8>) = match iter.next() {
+                    Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
+                    None => break,
+                };
 
-        if !key.contains("player") {
-            continue;
+                if !key.contains("player") {
+                    continue;
+                }
+
+                println!("{key}");
+
+                let player_path: PathBuf = player_dir.join(format!("{key}.nbt"));
+                write(player_path, value)?;
+            }
         }
-
-        println!("{key}");
-
-        let player_path: PathBuf = player_dir.join(format!("{key}.nbt"));
-        write(player_path, value)?;
+        EditMode::Write => {}
     }
 
     db.close().expect_exit("Failed to close database");
