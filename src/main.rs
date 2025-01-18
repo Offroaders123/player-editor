@@ -5,7 +5,7 @@ use rusty_leveldb::{
     compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
 };
 use std::env::args;
-use std::fs::{create_dir_all, write};
+use std::fs::{create_dir_all, read_dir, write, DirEntry, ReadDir};
 use std::io::{ErrorKind, Result};
 use std::path::{Path, PathBuf};
 
@@ -73,7 +73,28 @@ fn main() -> Result<()> {
                 write(player_path, value)?;
             }
         }
-        EditMode::Write => {}
+        EditMode::Write => {
+            println!("Looking for edited player files...");
+
+            let entries: ReadDir = read_dir(player_dir)?;
+
+            for entry in entries {
+                let entry: DirEntry = entry?;
+                let path: PathBuf = entry.path();
+
+                if !path.is_file() {
+                    continue;
+                }
+
+                let key: &str = path
+                    .file_stem()
+                    .expect_exit("File does not have a basename")
+                    .to_str()
+                    .expect_exit("Could not convert file name to UTF-8");
+
+                println!("{key}");
+            }
+        }
     }
 
     db.close().expect_exit("Failed to close database");
