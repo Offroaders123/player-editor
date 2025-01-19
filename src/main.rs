@@ -102,8 +102,13 @@ fn main() -> Result<()> {
 
                 println!("{key}");
 
-                let data: &[u8] = &read(path)?;
+                let data: &[u8] = &read(&path)?;
                 println!("{:?}", &data[0..10]);
+
+                let original: &[u8] = &db
+                    .get(key.as_bytes())
+                    .expect_exit("Could not find key in database");
+                println!("{:?}", &original[0..10]);
             }
         }
     }
