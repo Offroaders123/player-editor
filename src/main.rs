@@ -94,21 +94,43 @@ fn main() -> Result<()> {
                     continue;
                 }
 
+                if !path
+                    .to_str()
+                    .expect_exit("Could not convert file name to UTF-8")
+                    .contains("player")
+                {
+                    continue;
+                }
+
                 let key: &str = path
                     .file_stem()
                     .expect_exit("File does not have a basename")
                     .to_str()
                     .expect_exit("Could not convert file name to UTF-8");
 
-                println!("{key}");
+                if db.get(key.as_bytes()).is_none() {
+                    continue;
+                }
 
-                let data: &[u8] = &read(&path)?;
-                println!("{:?}", &data[0..10]);
+                // println!("{key}");
+
+                let edited: &[u8] = &read(&path)?;
+                // println!("{:?}", &edited[0..10]);
 
                 let original: &[u8] = &db
                     .get(key.as_bytes())
                     .expect_exit("Could not find key in database");
-                println!("{:?}", &original[0..10]);
+                // println!("{:?}", &original[0..10]);
+
+                if edited != original {
+                    println!("{key} <EDITED>");
+                    // println!("{:?}", edited);
+
+                    db.put(key.as_bytes(), edited)
+                        .expect_exit("Could not write file to database");
+                } else {
+                    println!("{key}");
+                }
             }
         }
     }
