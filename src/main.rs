@@ -5,7 +5,7 @@ use rusty_leveldb::{
     compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
 };
 use std::env::args;
-use std::fs::{create_dir_all, read_dir, write, DirEntry, ReadDir};
+use std::fs::{create_dir_all, read, read_dir, write, DirEntry};
 use std::io::{ErrorKind, Result};
 use std::path::{Path, PathBuf};
 
@@ -76,13 +76,21 @@ fn main() -> Result<()> {
         EditMode::Write => {
             println!("Looking for edited player files...");
 
-            let entries: ReadDir = read_dir(player_dir)?;
+            let entries: Vec<DirEntry> = read_dir(player_dir)?
+                .filter_map(|entry| entry.ok())
+                .collect();
 
             for entry in entries {
-                let entry: DirEntry = entry?;
                 let path: PathBuf = entry.path();
 
                 if !path.is_file() {
+                    continue;
+                }
+
+                if !path
+                    .extension()
+                    .map_or(false, |extension| extension == "nbt")
+                {
                     continue;
                 }
 
@@ -93,6 +101,9 @@ fn main() -> Result<()> {
                     .expect_exit("Could not convert file name to UTF-8");
 
                 println!("{key}");
+
+                let data: &[u8] = &read(path)?;
+                println!("{:?}", &data[0..10]);
             }
         }
     }
