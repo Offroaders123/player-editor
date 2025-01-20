@@ -1,9 +1,9 @@
 mod expect_exit;
+mod mojang_options;
 
 use crate::expect_exit::ExpectExit;
-use rusty_leveldb::{
-    compressor::SnappyCompressor, CompressorId, DBIterator, LdbIterator, Options, DB,
-};
+use crate::mojang_options::mojang_options;
+use rusty_leveldb::{DBIterator, LdbIterator, Options, DB};
 use std::env::args;
 use std::fs::{create_dir_all, read, read_dir, write, DirEntry};
 use std::io::{ErrorKind, Result};
@@ -38,9 +38,8 @@ fn main() -> Result<()> {
     let player_dir: PathBuf = world_dir.join("_player");
     let db_dir: PathBuf = world_dir.join("db");
 
-    let mut options: Options = Options::default();
+    let mut options: Options = mojang_options();
     options.create_if_missing = false;
-    options.compressor = SnappyCompressor::ID;
 
     println!("Opening world {:?}\n", world_dir);
 
