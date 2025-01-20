@@ -68,7 +68,10 @@ fn read_mode(player_dir: PathBuf, db: &mut DB) -> Result<()> {
 
     while iter.valid() {
         let (key, value): (String, Vec<u8>) = match iter.next() {
-            Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
+            Some((key, value)) => (
+                String::from_utf8(key).expect_exit("Could not convert key to UTF-8"),
+                value,
+            ),
             None => break,
         };
 
