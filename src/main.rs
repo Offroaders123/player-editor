@@ -62,88 +62,88 @@ fn main() -> Result<()> {
 }
 
 fn read_mode(player_dir: PathBuf, mut iter: DBIterator) -> Result<()> {
-            println!("Searching for player entries...");
+    println!("Searching for player entries...");
 
-            create_dir_all(&player_dir)?;
+    create_dir_all(&player_dir)?;
 
-            while iter.valid() {
-                let (key, value): (String, Vec<u8>) = match iter.next() {
-                    Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
-                    None => break,
-                };
+    while iter.valid() {
+        let (key, value): (String, Vec<u8>) = match iter.next() {
+            Some((key, value)) => (String::from_utf8_lossy(&key).to_string(), value),
+            None => break,
+        };
 
-                if !key.contains("player") {
-                    continue;
-                }
-
-                println!("{key}");
-
-                let player_path: PathBuf = player_dir.join(format!("{key}.nbt"));
-                write(player_path, value)?;
-            }
-
-            Ok(())
+        if !key.contains("player") {
+            continue;
         }
 
+        println!("{key}");
+
+        let player_path: PathBuf = player_dir.join(format!("{key}.nbt"));
+        write(player_path, value)?;
+    }
+
+    Ok(())
+}
+
 fn write_mode(player_dir: PathBuf, db: &mut DB) -> Result<()> {
-            println!("Looking for edited player files...");
+    println!("Looking for edited player files...");
 
-            let entries: Vec<DirEntry> = read_dir(player_dir)?
-                .filter_map(|entry| entry.ok())
-                .collect();
+    let entries: Vec<DirEntry> = read_dir(player_dir)?
+        .filter_map(|entry| entry.ok())
+        .collect();
 
-            for entry in entries {
-                let path: PathBuf = entry.path();
+    for entry in entries {
+        let path: PathBuf = entry.path();
 
-                if !path.is_file() {
-                    continue;
-                }
+        if !path.is_file() {
+            continue;
+        }
 
-                if !path
-                    .extension()
-                    .map_or(false, |extension| extension == "nbt")
-                {
-                    continue;
-                }
+        if !path
+            .extension()
+            .map_or(false, |extension| extension == "nbt")
+        {
+            continue;
+        }
 
-                if !path
-                    .to_str()
-                    .expect_exit("Could not convert file name to UTF-8")
-                    .contains("player")
-                {
-                    continue;
-                }
+        if !path
+            .to_str()
+            .expect_exit("Could not convert file name to UTF-8")
+            .contains("player")
+        {
+            continue;
+        }
 
-                let key: &str = path
-                    .file_stem()
-                    .expect_exit("File does not have a basename")
-                    .to_str()
-                    .expect_exit("Could not convert file name to UTF-8");
+        let key: &str = path
+            .file_stem()
+            .expect_exit("File does not have a basename")
+            .to_str()
+            .expect_exit("Could not convert file name to UTF-8");
 
-                if db.get(key.as_bytes()).is_none() {
-                    continue;
-                }
+        if db.get(key.as_bytes()).is_none() {
+            continue;
+        }
 
-                // println!("{key}");
+        // println!("{key}");
 
-                let edited: &[u8] = &read(&path)?;
-                // println!("{:?}", &edited[0..10]);
+        let edited: &[u8] = &read(&path)?;
+        // println!("{:?}", &edited[0..10]);
 
-                let original: &[u8] = &db
-                    .get(key.as_bytes())
-                    .expect_exit("Could not find key in database");
-                // println!("{:?}", &original[0..10]);
+        let original: &[u8] = &db
+            .get(key.as_bytes())
+            .expect_exit("Could not find key in database");
+        // println!("{:?}", &original[0..10]);
 
-                if edited != original {
-                    println!("{key} <EDITED>");
-                    // println!("{:?}", edited);
+        if edited != original {
+            println!("{key} <EDITED>");
+            // println!("{:?}", edited);
 
-                    db.put(key.as_bytes(), edited)
-                        .expect_exit("Could not write file to database");
-                } else {
-                    println!("{key}");
-                }
-            }
+            db.put(key.as_bytes(), edited)
+                .expect_exit("Could not write file to database");
+        } else {
+            println!("{key}");
+        }
+    }
 
     Ok(())
 }
