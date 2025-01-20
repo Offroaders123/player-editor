@@ -46,13 +46,8 @@ fn main() -> Result<()> {
 
     let mut db: DB = DB::open(db_dir, options).expect_exit("Failed to open database");
 
-    let mut iter: DBIterator = db
-        .new_iter()
-        .expect_exit("Failed to create database iterator");
-    iter.seek_to_first();
-
     match mode {
-        EditMode::Read => read_mode(player_dir, iter)?,
+        EditMode::Read => read_mode(player_dir, &mut db)?,
         EditMode::Write => write_mode(player_dir, &mut db)?,
     }
 
@@ -61,7 +56,12 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn read_mode(player_dir: PathBuf, mut iter: DBIterator) -> Result<()> {
+fn read_mode(player_dir: PathBuf, db: &mut DB) -> Result<()> {
+    let mut iter: DBIterator = db
+        .new_iter()
+        .expect_exit("Failed to create database iterator");
+    iter.seek_to_first();
+
     println!("Searching for player entries...");
 
     create_dir_all(&player_dir)?;
