@@ -52,7 +52,16 @@ fn main() -> Result<()> {
     iter.seek_to_first();
 
     match mode {
-        EditMode::Read => {
+        EditMode::Read => read_mode(player_dir, iter)?,
+        EditMode::Write => write_mode(player_dir, &mut db)?,
+    }
+
+    db.close().expect_exit("Failed to close database");
+
+    Ok(())
+}
+
+fn read_mode(player_dir: PathBuf, mut iter: DBIterator) -> Result<()> {
             println!("Searching for player entries...");
 
             create_dir_all(&player_dir)?;
@@ -72,8 +81,11 @@ fn main() -> Result<()> {
                 let player_path: PathBuf = player_dir.join(format!("{key}.nbt"));
                 write(player_path, value)?;
             }
+
+            Ok(())
         }
-        EditMode::Write => {
+
+fn write_mode(player_dir: PathBuf, db: &mut DB) -> Result<()> {
             println!("Looking for edited player files...");
 
             let entries: Vec<DirEntry> = read_dir(player_dir)?
@@ -132,10 +144,6 @@ fn main() -> Result<()> {
                     println!("{key}");
                 }
             }
-        }
-    }
-
-    db.close().expect_exit("Failed to close database");
 
     Ok(())
 }
