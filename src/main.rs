@@ -1,13 +1,14 @@
 mod expect_exit;
 mod mojang_options;
 
-use crate::expect_exit::ExpectExit;
-use crate::mojang_options::mojang_options;
-use rusty_leveldb::{DBIterator, LdbIterator, Options, DB};
 use std::env::args;
 use std::fs::{create_dir_all, read, read_dir, write, DirEntry};
 use std::io::{ErrorKind, Result};
 use std::path::{Path, PathBuf};
+
+use crate::expect_exit::ExpectExit;
+use crate::mojang_options::mojang_options;
+use rusty_leveldb::{DBIterator, LdbIterator, Options, DB};
 
 enum EditMode {
     Read,
