@@ -127,19 +127,14 @@ fn write_mode(player_dir: PathBuf, db: &mut DB) -> Result<()> {
             continue;
         }
 
-        // println!("{key}");
-
         let edited: &[u8] = &read(&path)?;
-        // println!("{:?}", &edited[0..10]);
 
         let original: &[u8] = &db
             .get(key.as_bytes())
             .expect_exit("Could not find key in database");
-        // println!("{:?}", &original[0..10]);
 
         if edited != original {
             println!("{key} <EDITED>");
-            // println!("{:?}", edited);
 
             db.put(key.as_bytes(), edited)
                 .expect_exit("Could not write file to database");
